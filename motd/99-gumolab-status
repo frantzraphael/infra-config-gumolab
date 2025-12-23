@@ -32,6 +32,13 @@ check_docker_container() {
     echo -e "${RED}🔴 $1 (docker) stopped${RESET}"
 }
 
+check_tunnel() {
+  systemctl is-active --quiet "$1" && \
+    echo -e "${GREEN}🟢 $1 tunnel up${RESET}" || \
+    echo -e "${RED}🔴 $1 tunnel down${RESET}"
+}
+
+
 echo -e "${CYAN}🖥  $HOST${RESET}"
 echo -e "${GRAY}────────────────────────────${RESET}"
 echo -e "⏱  Uptime: $UPTIME"
@@ -42,11 +49,15 @@ echo -e "🔀 SWAP: $SWAP"
 echo -e "💾 Disk (/): $DISK_USED / $DISK_TOTAL"
 echo -e "🌐 IP: $IP"
 echo
-echo -e "${CYAN}🧩 Services${RESET}"
-echo -e "${GRAY}────────────────────────────${RESET}"
 
-check_service cloudflared
+echo -e "${GRAY}────────────────────────────${RESET}"
+echo -e "🌐 Cloudflare Tunnels"
+check_tunnel cloudflared-jellyfin
+check_tunnel cloudflared-apps
+
+echo -e "${GRAY}────────────────────────────${RESET}"
+echo -e "${CYAN}🧩 Services${RESET}"
 check_service casaos
 check_docker_container jellyfin
-
+check_docker_container transmission
 
