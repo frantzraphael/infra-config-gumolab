@@ -18,11 +18,18 @@ DISK_USED=$(df -h / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -h / | awk 'NR==2 {print $2}')
 TEMP=$(sensors 2>/dev/null | awk '/Package id 0:/ {print $4}')
 IP=$(hostname -I | awk '{print $1}')
+SWAP=$(free -h | awk '/Swap:/ {print $3 "/" $2}')
 
 check_service() {
   systemctl is-active --quiet "$1" && \
     echo -e "${GREEN}🟢 $1 running${RESET}" || \
     echo -e "${RED}🔴 $1 stopped${RESET}"
+}
+
+check_docker_container() {
+  docker ps --format '{{.Names}}' | grep -q "^$1$" && \
+    echo -e "${GREEN}🟢 $1 (docker) running${RESET}" || \
+    echo -e "${RED}🔴 $1 (docker) stopped${RESET}"
 }
 
 echo -e "${CYAN}🖥  $HOST${RESET}"
@@ -31,6 +38,7 @@ echo -e "⏱  Uptime: $UPTIME"
 echo -e "🔥 CPU Load: $LOAD"
 echo -e "🌡  CPU Temp: ${TEMP:-N/A}"
 echo -e "🧠 RAM: $MEM_USED / $MEM_TOTAL"
+echo -e "🔀 SWAP: $SWAP"
 echo -e "💾 Disk (/): $DISK_USED / $DISK_TOTAL"
 echo -e "🌐 IP: $IP"
 echo
@@ -38,8 +46,7 @@ echo -e "${CYAN}🧩 Services${RESET}"
 echo -e "${GRAY}────────────────────────────${RESET}"
 
 check_service cloudflared
-check_service jellyfin
 check_service casaos
+check_docker_container jellyfin
 
-free -h | awk '/Swap:/ {print $3 "/" $2}'
 
